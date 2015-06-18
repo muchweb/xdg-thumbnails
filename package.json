@@ -1,0 +1,14 @@
+{
+  "name": "xdg-thumbnails",
+  "version": "0.0.0",
+  "description": "Generate thumbnails with system workers using freedesktop dbus specification",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "GPL-3.0+",
+  "dependencies": {
+    "dbus-native": "^0.2.0"
+  }
+}
