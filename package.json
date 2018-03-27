@@ -1,6 +1,6 @@
 {
   "name": "xdg-thumbnails",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "repository": "https://github.com/muchweb/xdg-thumbnails",
   "description": "Generate file thumbnails (image previews) with system workers using freedesktop.org DBus specification",
   "main": "index.js",
