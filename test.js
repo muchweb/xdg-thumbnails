@@ -1,50 +1,46 @@
-(function () {
-	'use strict';
+#!/usr/bin/env node
+'use strict';
+process.env.DEBUG = '*'
+const fs = require('fs');
+const assert = require('assert');
+const Thumbnailer = require('./index.js').Thumbnailer;
+const thumbnailer = new Thumbnailer();
 
-	var Thumbnailer = require('./index.js').Thumbnailer,
-		thumbnailer = new Thumbnailer();
+thumbnailer.connect(connected);
 
-	// thumbnailer.on('finished', function (file) {
-	// 	console.log('finished', file);
-	// });
-	// thumbnailer.on('ready', function (file) {
-	// 	console.log('ready', file);
-	// });
-	// thumbnailer.on('started', function (file) {
-	// 	console.log('started', file);
-	// });
-	thumbnailer.on('error', function (file) {
-		// console.log('error', file);
+function connected (error) {
+	if (error) return console.error(error);
+
+	// Image downloaded from https://commons.wikimedia.org/wiki/File:Cat_November_2010-1a.jpg
+	// License: Creative Commons Attribution-Share Alike 3.0 Unported license.
+	// Author:  Alvesgaspar (https://commons.wikimedia.org/wiki/User:Alvesgaspar)
+	thumbnailer.queueFile('cat.jpg',          (error, path) => {
+		assert.ok(!error, 'There shall be no error');
+		assert.ok(path, 'There shall be path');
+		assert.ok(fs.existsSync(path), 'File shall exist');
+		console.log(`Thumbnail created at ${path}`);
+
+		thumbnailer.queueFile('what.jpg',         (error, path) => {
+			assert.ok(error, 'There shall be error');
+			assert.ok(!path, 'There shall be no path');
+
+			thumbnailer.methodGetSupported((error, uri_schemes, mime_types) => {
+				assert.ok(!error, 'There shall be no error');
+				console.log('Available mime_types are:', Array.from(new Set((mime_types))).sort());
+				console.log('Available uri_schemes are:', Array.from(new Set((uri_schemes))).sort());
+
+				thumbnailer.methodGetSchedulers((error, schedulers) => {
+					assert.ok(!error, 'There shall be no error');
+					console.log('Available schedulers are:', Array.from(new Set((schedulers))).sort());
+
+					thumbnailer.methodGetFlavors((error, flavors) => {
+						assert.ok(!error, 'There shall be no error');
+						console.log('Available flavors are:', Array.from(new Set((flavors))).sort());
+
+						process.exit();
+					});
+				});
+			});
+		});
 	});
-
-	//
-	// thumbnailer.on('GetSupported', function () {
-	// 	console.log('GetSupported', arguments);
-	// });
-	//
-	// thumbnailer.on('GetSchedulers', function () {
-	// 	console.log('GetSchedulers', arguments);
-	// });
-	//
-	// thumbnailer.on('GetFlavors', function () {
-	// 	console.log('GetFlavors', arguments);
-	// });
-	//
-
-	thumbnailer.Request('cat.jpg', function (error, thumb) {
-		if (error)
-			console.log(error.message);
-		console.log('Created', thumb);
-	});
-	thumbnailer.Request('wrong.js', function (error, thumb) {
-		if (error)
-			console.log(error.message);
-		console.log('Created', thumb);
-	});
-	thumbnailer.Request('./keyboard-cat.gif', function (error, thumb) {
-		if (error)
-			console.log(error.message);
-		console.log('Created', thumb);
-	});
-
-})();
+}

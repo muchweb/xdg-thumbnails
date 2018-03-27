@@ -1,6 +1,6 @@
 # xdg-thumbnails
 
-Generate thumbnails with system workers using freedesktop dbus specification
+Generate file thumbnails (image previews) with system workers using freedesktop.org DBus specification
 
 ## Installation
 
@@ -11,13 +11,30 @@ npm install xdg-thumbnails
 ## Usage
 
 ```js
-var Thumbnailer = require('xdg-thumbnails').Thumbnailer,
-	thumbnailer = new Thumbnailer();
+const thumbnailer = new require('xdg-thumbnails').Thumbnailer;
 
-thumbnailer.Request('cat.jpg', function (error, path) {
+thumbnailer.connect((error) => {
 	if (error)
-		return console.log(error.message);
+		return console.error(error);
 
-	console.log('Generated thumbnail: ', path);
+	thumbnailer.queueFile('image.jpg', (error, path) => {
+		if (error)
+			return console.error(error);
+
+		console.log(`Newly generated thumbnail: ${path}`);
+	});
+
+	// or, with options
+
+	thumbnailer.queueFile({
+		file_path: 'image.jpg'
+		scheduler: 'default',  // Options: 'background', 'default', 'foreground'
+		flavor:    'normal',   // Options: 'large', 'normal'
+	}, (error, path) => {
+		if (error)
+			return console.error(error);
+
+		console.log(`Newly generated thumbnail: ${path}`);
+	});
 });
 ```

@@ -2,15 +2,12 @@
   "name": "xdg-thumbnails",
   "version": "1.0.0",
   "repository": "https://github.com/muchweb/xdg-thumbnails",
-  "description": "Generate thumbnails with system workers using freedesktop dbus specification",
+  "description": "Generate file thumbnails (image previews) with system workers using freedesktop.org DBus specification",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
   "license": "GPL-3.0+",
   "dependencies": {
-    "dbus-native": "^0.2.0",
-    "mime": "^1.3.4"
+    "dbus-native": "^0.2.5",
+    "debug": "^3.1.0",
+    "mime": "^2.2.0"
   }
 }
