@@ -20,14 +20,25 @@ const path   = require('path');
 const log    = debug('xdg-thumbnails');
 
 class Thumbnailer {
+	/**
+	* @static
+	* @method getThumbDir
+	*/
 	static getThumbDir () {
 		if (process.env.XDG_CACHE_HOME)
 			return `${process.env.XDG_CACHE_HOME}/thumbnails`;
 		return `${process.env.HOME}/.cache/thumbnails`;
 	}
 
+	/**
+	* <signal name="Started">
+	*   <arg type="u" name="handle" />
+	* </signal>
+	* @constructor
+	* @param {Object} options
+	*/
 	constructor (options={}) {
-		if (!options.service)   options.service = 'org.freedesktop.thumbnails.Thumbnailer1';
+		if (!options.service)   options.service   = 'org.freedesktop.thumbnails.Thumbnailer1';
 		if (!options.thumb_dir) options.thumb_dir = Thumbnailer.getThumbDir();
 		this.thumb_dir = options.thumb_dir;
 		this.bus = dbus.sessionBus();
@@ -36,6 +47,14 @@ class Thumbnailer {
 		this.jobs = {};
 	}
 
+	/**
+	* <signal name="Started">
+	*   <arg type="u" name="handle" />
+	* </signal>
+	* @method connect
+	* @param {Function} callback
+	* @param {Object} options
+	*/
 	connect (callback, options={}) {
 		if (!options.node)      options.node      = '/org/freedesktop/thumbnails/Thumbnailer1';
 		if (!options.interface) options.interface = 'org.freedesktop.thumbnails.Thumbnailer1';
@@ -46,6 +65,22 @@ class Thumbnailer {
 		);
 	}
 
+	/**
+	* @method disconnect
+	*/
+	disconnect () {
+		console.log('Shall disconnect');
+	}
+
+	/**
+	* <signal name="Started">
+	*   <arg type="u" name="handle" />
+	* </signal>
+	* @method gotInterface
+	* @param {Function} callback
+	* @param {string} error
+	* @param {Object} result
+	*/
 	gotInterface (callback, error, result) {
 		if (error) return callback(error);
 		this.interface = result;
@@ -61,6 +96,7 @@ class Thumbnailer {
 	*   <arg type="u" name="handle" />
 	* </signal>
 	* @method eventStarted
+	* @param {number} handle
 	*/
 	eventStarted (handle) {
 		log('[Interface][Started]', `handle=${handle}`);
@@ -71,6 +107,7 @@ class Thumbnailer {
 	*   <arg type="u" name="handle" />
 	* </signal>
 	* @method eventFinished
+	* @param {number} handle
 	*/
 	eventFinished (handle) {
 		log('[Interface][Finished]', `handle=${handle}`);
@@ -86,6 +123,8 @@ class Thumbnailer {
 	*   <arg type="as" name="uris" />
 	* </signal>
 	* @method eventReady
+	* @param {number} handle
+	* @param {Array<string>} uris
 	*/
 	eventReady (handle, uris) {
 		log('[Interface][Ready]', `handle=${handle}`, `uris=${uris}`);
@@ -99,6 +138,10 @@ class Thumbnailer {
 	*   <arg type="s" name="message" />
 	* </signal>
 	* @method eventError
+	* @param {number} handle
+	* @param {Array<string>} failed_uris
+	* @param {number} error_code
+	* @param {string} message
 	*/
 	eventError (handle, failed_uris, error_code, message) {
 		log('[Interface][Error]', `handle=${handle}`, `failed_uris=${failed_uris}`, `error_code=${error_code}`, `message=${message}`);
@@ -110,6 +153,8 @@ class Thumbnailer {
 
 	/**
 	* @method queueFile
+	* @param {string|Object} options
+	* @param {Function} callback
 	*/
 	queueFile (options, callback) {
 		if (typeof options === 'string')
@@ -137,15 +182,24 @@ class Thumbnailer {
 		);
 	}
 
-	// <method name="Queue">
-	//   <annotation name="org.freedesktop.DBus.GLib.Async" value="true"/>
-	//   <arg type="as" name="uris" direction="in" />
-	//   <arg type="as" name="mime_types" direction="in" />
-	//   <arg type="s" name="flavor" direction="in" />
-	//   <arg type="s" name="scheduler" direction="in" />
-	//   <arg type="u" name="handle_to_unqueue" direction="in" />
-	//   <arg type="u" name="handle" direction="out" />
-	// </method>
+	/**
+	* <method name="Queue">
+	*   <annotation name="org.freedesktop.DBus.GLib.Async" value="true"/>
+	*   <arg type="as" name="uris" direction="in" />
+	*   <arg type="as" name="mime_types" direction="in" />
+	*   <arg type="s" name="flavor" direction="in" />
+	*   <arg type="s" name="scheduler" direction="in" />
+	*   <arg type="u" name="handle_to_unqueue" direction="in" />
+	*   <arg type="u" name="handle" direction="out" />
+	* </method>
+	* @method methodDequeue
+	* @param {Array<string>} uris
+	* @param {Array<string>} mime_types
+	* @param {string} flavor
+	* @param {string} scheduler
+	* @param {number} handle_to_unqueue
+	* @param {Function} callback
+	*/
 	methodQueue (uris, mime_types, flavor, scheduler, handle_to_unqueue, callback) {
 		this.interface.Queue(
 			uris,
@@ -157,10 +211,15 @@ class Thumbnailer {
 		);
 	}
 
-	// <method name="Dequeue">
-	//   <annotation name="org.freedesktop.DBus.GLib.Async" value="true"/>
-	//   <arg type="u" name="handle" direction="in" />
-	// </method>
+	/**
+	* <method name="Dequeue">
+	*   <annotation name="org.freedesktop.DBus.GLib.Async" value="true"/>
+	*   <arg type="u" name="handle" direction="in" />
+	* </method>
+	* @method methodDequeue
+	* @param {number} handle
+	* @param {Function} callback
+	*/
 	methodDequeue (handle, callback) {
 		this.interface.Dequeue(
 			handle,
@@ -168,32 +227,44 @@ class Thumbnailer {
 		);
 	}
 
-	// <method name="GetSupported">
-	//   <annotation name="org.freedesktop.DBus.GLib.Async" value="true" />
-	//   <arg type="as" name="uri_schemes" direction="out" />
-	//   <arg type="as" name="mime_types" direction="out" />
-	// </method>
+	/**
+	* <method name="GetSupported">
+	*   <annotation name="org.freedesktop.DBus.GLib.Async" value="true" />
+	*   <arg type="as" name="uri_schemes" direction="out" />
+	*   <arg type="as" name="mime_types" direction="out" />
+	* </method>
+	* @method methodGetSupported
+	* @param {Function} callback
+	*/
 	methodGetSupported (callback) {
 		this.interface.GetSupported(
 			callback // (error, uri_schemes, mime_types)
 		);
-
 	}
 
-	// <method name="GetSchedulers">
-	//   <annotation name="org.freedesktop.DBus.GLib.Async" value="true" />
-	//   <arg type="as" name="schedulers" direction="out" />
-	// </method>
+	/**
+	* <method name="GetSchedulers">
+	*   <annotation name="org.freedesktop.DBus.GLib.Async" value="true" />
+	*   <arg type="as" name="schedulers" direction="out" />
+	* </method>
+	* @method methodGetFlavors
+	* @param {Function} callback
+	*/
 	methodGetSchedulers (callback) {
 		this.interface.GetSchedulers(
 			callback // (error, schedulers)
 		);
 	}
 
-	// <method name="GetFlavors">
-	//   <annotation name="org.freedesktop.DBus.GLib.Async" value="true" />
-	//   <arg type="as" name="flavors" direction="out" />
-	// </method>
+
+	/**
+	* <method name="GetFlavors">
+	*   <annotation name="org.freedesktop.DBus.GLib.Async" value="true" />
+	*   <arg type="as" name="flavors" direction="out" />
+	* </method>
+	* @method methodGetFlavors
+	* @param {Function} callback
+	*/
 	methodGetFlavors (callback) {
 		this.interface.GetFlavors(
 			callback // (error, flavors)

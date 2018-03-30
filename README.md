@@ -11,7 +11,7 @@ npm install xdg-thumbnails
 ## Usage
 
 ```js
-const thumbnailer = new require('xdg-thumbnails').Thumbnailer;
+const thumbnailer = new (require('xdg-thumbnails').Thumbnailer);
 
 thumbnailer.connect((error) => {
 	if (error)
@@ -27,7 +27,7 @@ thumbnailer.connect((error) => {
 	// or, with options
 
 	thumbnailer.queueFile({
-		file_path: 'image.jpg'
+		file_path: 'image.jpg',
 		scheduler: 'default',  // Options: 'background', 'default', 'foreground'
 		flavor:    'normal',   // Options: 'large', 'normal'
 	}, (error, path) => {
